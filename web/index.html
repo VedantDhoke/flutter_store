@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="ecommerce_admin_tut">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <title>ecommerce_admin_tut</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Firebase SDK -->
+  <script defer src="/__/firebase/9.6.1/firebase-app.js"></script>
+  <script defer src="/__/firebase/9.6.1/firebase-firestore.js"></script>
+  <script defer src="/__/firebase/init.js"></script>
+</head>
+
+<body>
+  <!-- Service Worker for PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('flutter-first-frame', function () {
+        navigator.serviceWorker.register('flutter_service_worker.js');
+      });
+    }
+  </script>
+
+  <script type="module">
+    // Import Firebase SDK
+    import { initializeApp } from "firebase/app";
+    import { getAnalytics } from "firebase/analytics";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIUrlE9SAFJVFGnqwGj_GIPLdXbOAQt_I",
+      authDomain: "inventorymanagement-8e448.firebaseapp.com",
+      projectId: "inventorymanagement-8e448",
+      storageBucket: "inventorymanagement-8e448.firebasestorage.app",
+      messagingSenderId: "534578853224",
+      appId: "1:534578853224:web:f8a5ee95896227e86f12dd",
+      measurementId: "G-5K7VS2X1MV"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+
+  <script src="main.dart.js" type="application/javascript"></script>
+</body>
+
+</html>
