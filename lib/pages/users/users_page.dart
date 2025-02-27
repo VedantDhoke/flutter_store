@@ -17,16 +17,6 @@ class _UsersPageState extends State<UsersPage> {
   bool _isLoading = true;
   bool _isSearch = false;
 
-  _initData() async {
-    setState(() => _isLoading = true);
-    Future.delayed(Duration(seconds: 2), () {
-      setState(() {
-        _source = _generateData(n: 100);
-        _isLoading = false;
-      });
-    });
-  }
-
   List<Map<String, dynamic>> _generateData({int n = 100}) {
     return List.generate(
         n,
@@ -36,6 +26,16 @@ class _UsersPageState extends State<UsersPage> {
               "email": "user$i@example.com",
               "role": i % 2 == 0 ? "Admin" : "User"
             });
+  }
+
+  _initData() async {
+    setState(() => _isLoading = true);
+    Future.delayed(Duration(seconds: 2), () {
+      setState(() {
+        _source = _generateData(n: 100);
+        _isLoading = false;
+      });
+    });
   }
 
   @override

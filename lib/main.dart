@@ -1,7 +1,7 @@
 import 'package:ecommerce_admin_tut/pages/login/login.dart';
 import 'package:ecommerce_admin_tut/provider/app_provider.dart';
 import 'package:ecommerce_admin_tut/provider/auth.dart';
-import 'package:ecommerce_admin_tut/provider/users.dart';
+import 'package:ecommerce_admin_tut/provider/products_provider.dart';
 import 'package:ecommerce_admin_tut/rounting/router.dart';
 import 'package:ecommerce_admin_tut/widgets/layout/layout.dart';
 import 'package:ecommerce_admin_tut/widgets/loading.dart';
@@ -25,7 +25,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => AppProvider.init()),
         ChangeNotifierProvider(create: (context) => AuthProvider.initialize()),
-        ChangeNotifierProvider(create: (context) => (UsersProvider())),
+        ChangeNotifierProvider(
+            create: (context) => ProductsProvider()), // Updated
       ],
       child: MyApp(),
     ),
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Flutter Admin Panel',
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),

@@ -1,6 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:responsive_table/responsive_table.dart';
+import 'package:provider/provider.dart';
+import 'package:ecommerce_admin_tut/provider/products_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // For Timestamp
 
 class ProductsPage extends StatefulWidget {
   @override
@@ -8,200 +9,155 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
-  List<DatatableHeader> _headers = [];
-  List<int> _perPages = [5, 10, 15, 100];
-  int _total = 0;
-  int _currentPerPage = 10;
-  int _currentPage = 1;
-  bool _isSearch = false;
-  List<Map<String, dynamic>> _source = [];
-  List<Map<String, dynamic>> _selecteds = [];
-  String? _sortColumn;
-  bool _sortAscending = true;
-  bool _isLoading = true;
-  bool _showSelect = true;
+  final _formKey = GlobalKey<FormState>(); // Form key for validation
+  final _nameController =
+      TextEditingController(); // Controller for product name
+  final _priceController =
+      TextEditingController(); // Controller for product price
 
   @override
   void initState() {
     super.initState();
-    _headers = [
-      DatatableHeader(
-          text: "ID",
-          value: "id",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.right),
-      DatatableHeader(
-          text: "Name",
-          value: "name",
-          show: true,
-          flex: 2,
-          sortable: true,
-          textAlign: TextAlign.left),
-      DatatableHeader(
-          text: "SKU",
-          value: "sku",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.center),
-      DatatableHeader(
-          text: "Category",
-          value: "category",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.left),
-      DatatableHeader(
-          text: "Price",
-          value: "price",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.left),
-      DatatableHeader(
-          text: "Margin",
-          value: "margin",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.left),
-      DatatableHeader(
-          text: "In Stock",
-          value: "in_stock",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.left),
-      DatatableHeader(
-          text: "Alert",
-          value: "alert",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.left),
-      DatatableHeader(
-          text: "Received",
-          value: "received",
-          show: true,
-          sortable: false,
-          sourceBuilder: (value, row) {
-            if (value is List && value.length == 2) {
-              return Column(
-                children: [
-                  SizedBox(
-                    width: 85,
-                    child: LinearProgressIndicator(value: value[0] / value[1]),
-                  ),
-                  Text("${value[0]} of ${value[1]}")
-                ],
-              );
-            }
-            return const Text("Invalid Data");
-          },
-          textAlign: TextAlign.center),
-    ];
-    _initData();
+    // Fetch products when the page is loaded
+    Provider.of<ProductsProvider>(context, listen: false).fetchProducts();
   }
 
-  List<Map<String, dynamic>> _generateData({int n = 10}) {
-    List<Map<String, dynamic>> temps = [];
-    int start = _source.length;
-    for (int i = start; i < start + n; i++) {
-      temps.add({
-        "id": i,
-        "sku": "$i-$i",
-        "name": "Product $i",
-        "category": "Category-$i",
-        "price": "${i}0.00",
-        "cost": "20.00",
-        "margin": "${i}0.20",
-        "in_stock": "${i}0",
-        "alert": "5",
-        "received": [i + 20, 150]
-      });
-    }
-    return temps;
-  }
-
-  _initData() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      _source.addAll(_generateData(n: 100));
-      _total = _source.length;
-      _isLoading = false;
-    });
+  @override
+  void dispose() {
+    // Dispose the controllers to avoid memory leaks
+    _nameController.dispose();
+    _priceController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final productsProvider = Provider.of<ProductsProvider>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('PRODUCTS')),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.all(10),
-              constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.7),
-              child: Card(
-                elevation: 1,
-                shadowColor: Colors.black,
-                child: ResponsiveDatatable(
-                  title: !_isSearch
-                      ? ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.add),
-                          label: const Text("ADD CATEGORY"))
-                      : null,
-                  actions: [
-                    if (_isSearch)
-                      Expanded(
-                          child: TextField(
-                        decoration: InputDecoration(
-                            prefixIcon: IconButton(
-                                icon: const Icon(Icons.cancel),
-                                onPressed: () {
-                                  setState(() {
-                                    _isSearch = false;
-                                  });
-                                }),
-                            suffixIcon: IconButton(
-                                icon: const Icon(Icons.search),
-                                onPressed: () {})),
-                      )),
-                    if (!_isSearch)
-                      IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {
-                            setState(() {
-                              _isSearch = true;
-                            });
-                          })
-                  ],
-                  headers: _headers,
-                  source: _source,
-                  selecteds: [],
-                  showSelect: _showSelect,
-                  autoHeight: false,
-                  expanded: List.filled(_source.length, false),
-                  onSort: (value) {
-                    setState(() {
-                      _sortColumn = value;
-                      _sortAscending = !_sortAscending;
-                      _source.sort((a, b) {
-                        var aValue = a[value];
-                        var bValue = b[value];
-                        return _sortAscending
-                            ? aValue.toString().compareTo(bValue.toString())
-                            : bValue.toString().compareTo(aValue.toString());
-                      });
-                    });
-                  },
-                  sortAscending: _sortAscending,
-                  sortColumn: _sortColumn,
-                  isLoading: _isLoading,
+      appBar: AppBar(
+        title: Text("Products"),
+      ),
+      body: productsProvider.products.isEmpty
+          ? Center(child: CircularProgressIndicator()) // Show loading indicator
+          : _buildProductList(productsProvider.products),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () =>
+            _showAddProductDialog(context), // Open add product dialog
+        child: Icon(Icons.add),
+        tooltip: "Add New Product",
+      ),
+    );
+  }
+
+  Widget _buildProductList(List<Map<String, dynamic>> products) {
+    return ListView.builder(
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return Card(
+          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: ListTile(
+            title: Text(
+              product["name"] ?? "Unknown Product",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 4),
+                Text(
+                  "Price: \$${product["price"]?.toStringAsFixed(2) ?? "0.00"}",
+                  style: TextStyle(fontSize: 16),
                 ),
-              ),
+                SizedBox(height: 4),
+                Text(
+                  "Added: ${product["timestamp"] != null ? (product["timestamp"] as Timestamp).toDate().toString() : "No Date"}",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+            trailing: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                // Delete the product
+                Provider.of<ProductsProvider>(context, listen: false)
+                    .deleteProduct(product["id"]);
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddProductDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Add New Product"),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: "Product Name"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter a product name";
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _priceController,
+                  decoration: InputDecoration(labelText: "Product Price"),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter a product price";
+                    }
+                    if (double.tryParse(value) == null) {
+                      return "Please enter a valid price";
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Close the dialog
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  // Get the name and price from the controllers
+                  final name = _nameController.text;
+                  final price = double.tryParse(_priceController.text) ?? 0.0;
+
+                  // Add the product to Firestore
+                  await Provider.of<ProductsProvider>(context, listen: false)
+                      .addProduct(name, price);
+
+                  // Clear the text fields
+                  _nameController.clear();
+                  _priceController.clear();
+
+                  // Close the dialog
+                  Navigator.pop(context);
+                }
+              },
+              child: Text("Add"),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
