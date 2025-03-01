@@ -1,6 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:responsive_table/responsive_table.dart';
+import 'package:provider/provider.dart';
+import 'package:ecommerce_admin_tut/provider/orders_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // For Timestamp
 
 class OrdersPage extends StatefulWidget {
   @override
@@ -8,157 +9,176 @@ class OrdersPage extends StatefulWidget {
 }
 
 class _OrdersPageState extends State<OrdersPage> {
-  List<DatatableHeader> _headers = [];
-  List<int> _perPages = [5, 10, 15, 100];
-  int _total = 0;
-  int _currentPerPage = 10;
-  int _currentPage = 1;
-  bool _isSearch = false;
-  List<Map<String, dynamic>> _source = [];
-  List<Map<String, dynamic>> _selecteds = [];
-  String? _sortColumn;
-  bool _sortAscending = true;
-  bool _isLoading = true;
-  bool _showSelect = true;
+  final _formKey = GlobalKey<FormState>(); // Form key for validation
+  final _customerNameController =
+      TextEditingController(); // Controller for customer name
+  final _totalAmountController =
+      TextEditingController(); // Controller for total amount
+  String _selectedStatus = "Pending"; // Default status
 
   @override
   void initState() {
     super.initState();
-    _headers = [
-      DatatableHeader(
-          text: "Order ID",
-          value: "order_id",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.right),
-      DatatableHeader(
-          text: "Customer Name",
-          value: "customer_name",
-          show: true,
-          flex: 2,
-          sortable: true,
-          textAlign: TextAlign.left),
-      DatatableHeader(
-          text: "Total Amount",
-          value: "total_amount",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.center),
-      DatatableHeader(
-          text: "Status",
-          value: "status",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.left),
-      DatatableHeader(
-          text: "Order Date",
-          value: "order_date",
-          show: true,
-          sortable: true,
-          textAlign: TextAlign.left),
-    ];
-    _initData();
+    // Fetch orders when the page is loaded
+    Provider.of<OrdersProvider>(context, listen: false).fetchOrders();
   }
 
-  List<Map<String, dynamic>> _generateData({int n = 10}) {
-    List<Map<String, dynamic>> temps = [];
-    int start = _source.length;
-    for (int i = start; i < start + n; i++) {
-      temps.add({
-        "order_id": i + 1000,
-        "customer_name": "Customer $i",
-        "total_amount": "${i * 50}.00",
-        "status": i % 2 == 0 ? "Completed" : "Pending",
-        "order_date": "2024-02-${i % 28 + 1}",
-      });
-    }
-    return temps;
-  }
-
-  _initData() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      _source.addAll(_generateData(n: 100));
-      _total = _source.length;
-      _isLoading = false;
-    });
+  @override
+  void dispose() {
+    // Dispose the controllers to avoid memory leaks
+    _customerNameController.dispose();
+    _totalAmountController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final ordersProvider = Provider.of<OrdersProvider>(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('ORDERS')),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.all(10),
-              constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.7),
-              child: Card(
-                elevation: 1,
-                shadowColor: Colors.black,
-                child: ResponsiveDatatable(
-                  title: !_isSearch
-                      ? ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.add),
-                          label: const Text("ADD ORDER"))
-                      : null,
-                  actions: [
-                    if (_isSearch)
-                      Expanded(
-                          child: TextField(
-                        decoration: InputDecoration(
-                            prefixIcon: IconButton(
-                                icon: const Icon(Icons.cancel),
-                                onPressed: () {
-                                  setState(() {
-                                    _isSearch = false;
-                                  });
-                                }),
-                            suffixIcon: IconButton(
-                                icon: const Icon(Icons.search),
-                                onPressed: () {})),
-                      )),
-                    if (!_isSearch)
-                      IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {
-                            setState(() {
-                              _isSearch = true;
-                            });
-                          })
-                  ],
-                  headers: _headers,
-                  source: _source,
-                  selecteds: [],
-                  showSelect: _showSelect,
-                  autoHeight: false,
-                  expanded: List.filled(_source.length, false),
-                  onSort: (value) {
+      appBar: AppBar(
+        title: Text("Orders"),
+      ),
+      body: ordersProvider.orders.isEmpty
+          ? Center(child: CircularProgressIndicator()) // Show loading indicator
+          : _buildOrderList(ordersProvider.orders),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddOrderDialog(context), // Open add order dialog
+        child: Icon(Icons.add),
+        tooltip: "Add New Order",
+      ),
+    );
+  }
+
+  Widget _buildOrderList(List<Map<String, dynamic>> orders) {
+    return ListView.builder(
+      itemCount: orders.length,
+      itemBuilder: (context, index) {
+        final order = orders[index];
+        return Card(
+          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          child: ListTile(
+            title: Text(
+              order["customer_name"] ?? "Unknown Customer",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 4),
+                Text(
+                  "Total Amount: \$${order["total_amount"]?.toStringAsFixed(2) ?? "0.00"}",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "Status: ${order["status"] ?? "Pending"}",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "Order Date: ${order["order_date"] != null ? (order["order_date"] as Timestamp).toDate().toString() : "No Date"}",
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+            trailing: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                // Delete the order
+                Provider.of<OrdersProvider>(context, listen: false)
+                    .deleteOrder(order["id"]);
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddOrderDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Add New Order"),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _customerNameController,
+                  decoration: InputDecoration(labelText: "Customer Name"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter a customer name";
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _totalAmountController,
+                  decoration: InputDecoration(labelText: "Total Amount"),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter a total amount";
+                    }
+                    if (double.tryParse(value) == null) {
+                      return "Please enter a valid amount";
+                    }
+                    return null;
+                  },
+                ),
+                DropdownButtonFormField<String>(
+                  value: _selectedStatus,
+                  items: ["Pending", "Completed", "Cancelled"]
+                      .map((status) => DropdownMenuItem(
+                            value: status,
+                            child: Text(status),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
                     setState(() {
-                      _sortColumn = value;
-                      _sortAscending = !_sortAscending;
-                      _source.sort((a, b) {
-                        var aValue = a[value];
-                        var bValue = b[value];
-                        return _sortAscending
-                            ? aValue.toString().compareTo(bValue.toString())
-                            : bValue.toString().compareTo(aValue.toString());
-                      });
+                      _selectedStatus = value!;
                     });
                   },
-                  sortAscending: _sortAscending,
-                  sortColumn: _sortColumn,
-                  isLoading: _isLoading,
+                  decoration: InputDecoration(labelText: "Order Status"),
                 ),
-              ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Close the dialog
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  // Get the values from the controllers
+                  final customerName = _customerNameController.text;
+                  final totalAmount =
+                      double.tryParse(_totalAmountController.text) ?? 0.0;
+
+                  // Add the order to Firestore
+                  await Provider.of<OrdersProvider>(context, listen: false)
+                      .addOrder(customerName, totalAmount, _selectedStatus);
+
+                  // Clear the text fields
+                  _customerNameController.clear();
+                  _totalAmountController.clear();
+
+                  // Close the dialog
+                  Navigator.pop(context);
+                }
+              },
+              child: Text("Add"),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }

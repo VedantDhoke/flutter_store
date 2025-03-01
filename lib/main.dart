@@ -2,6 +2,7 @@ import 'package:ecommerce_admin_tut/pages/login/login.dart';
 import 'package:ecommerce_admin_tut/provider/app_provider.dart';
 import 'package:ecommerce_admin_tut/provider/auth.dart';
 import 'package:ecommerce_admin_tut/provider/products_provider.dart';
+import 'package:ecommerce_admin_tut/provider/orders_provider.dart';
 import 'package:ecommerce_admin_tut/rounting/router.dart';
 import 'package:ecommerce_admin_tut/widgets/layout/layout.dart';
 import 'package:ecommerce_admin_tut/widgets/loading.dart';
@@ -27,6 +28,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => AuthProvider.initialize()),
         ChangeNotifierProvider(
             create: (context) => ProductsProvider()), // Updated
+        ChangeNotifierProvider(create: (context) => OrdersProvider()),
       ],
       child: MyApp(),
     ),
