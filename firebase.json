@@ -1,1 +1,27 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"inventorymanagement-8e448","configurations":{"web":"1:534578853224:web:f8a5ee95896227e86f12dd"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "inventorymanagement-8e448",
+          "configurations": {
+            "web": "1:534578853224:web:f8a5ee95896227e86f12dd"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}
