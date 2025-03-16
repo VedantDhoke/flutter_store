@@ -4,6 +4,7 @@ import 'package:ecommerce_admin_tut/provider/auth.dart';
 import 'package:ecommerce_admin_tut/provider/products_provider.dart';
 import 'package:ecommerce_admin_tut/provider/orders_provider.dart';
 import 'package:ecommerce_admin_tut/provider/users_provider.dart';
+import 'package:ecommerce_admin_tut/provider/dashboard_provider.dart';
 import 'package:ecommerce_admin_tut/rounting/router.dart';
 import 'package:ecommerce_admin_tut/widgets/layout/layout.dart';
 import 'package:ecommerce_admin_tut/widgets/loading.dart';
@@ -31,6 +32,7 @@ void main() async {
             create: (context) => ProductsProvider()), // Updated
         ChangeNotifierProvider(create: (context) => OrdersProvider()),
         ChangeNotifierProvider(create: (context) => UsersProvider()),
+        ChangeNotifierProvider(create: (context) => DashboardProvider()),
       ],
       child: MyApp(),
     ),

@@ -43,13 +43,6 @@ class HomePageDesktop extends StatelessWidget {
                       size: 30,
                     ),
                     TopBuyerWidget(),
-                    TopBuyerWidget(),
-                    TopBuyerWidget(),
-                    TopBuyerWidget(),
-                    TopBuyerWidget(),
-                    TopBuyerWidget(),
-                    TopBuyerWidget(),
-                    TopBuyerWidget(),
                   ],
                 ),
               )
