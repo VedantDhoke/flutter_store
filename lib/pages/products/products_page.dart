@@ -10,10 +10,9 @@ class ProductsPage extends StatefulWidget {
 
 class _ProductsPageState extends State<ProductsPage> {
   final _formKey = GlobalKey<FormState>(); // Form key for validation
-  final _nameController =
-      TextEditingController(); // Controller for product name
-  final _priceController =
-      TextEditingController(); // Controller for product price
+  final _nameController = TextEditingController(); // Product name
+  final _priceController = TextEditingController(); // Product price
+  final _countController = TextEditingController(); // Product count
 
   @override
   void initState() {
@@ -24,9 +23,10 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   void dispose() {
-    // Dispose the controllers to avoid memory leaks
+    // Dispose controllers
     _nameController.dispose();
     _priceController.dispose();
+    _countController.dispose();
     super.dispose();
   }
 
@@ -39,11 +39,10 @@ class _ProductsPageState extends State<ProductsPage> {
         title: Text("Products"),
       ),
       body: productsProvider.products.isEmpty
-          ? Center(child: CircularProgressIndicator()) // Show loading indicator
+          ? Center(child: CircularProgressIndicator())
           : _buildProductList(productsProvider.products),
       floatingActionButton: FloatingActionButton(
-        onPressed: () =>
-            _showAddProductDialog(context), // Open add product dialog
+        onPressed: () => _showAddProductDialog(context),
         child: Icon(Icons.add),
         tooltip: "Add New Product",
       ),
@@ -70,6 +69,10 @@ class _ProductsPageState extends State<ProductsPage> {
                   "Price: \$${product["price"]?.toStringAsFixed(2) ?? "0.00"}",
                   style: TextStyle(fontSize: 16),
                 ),
+                Text(
+                  "Stock: ${product["count"] ?? 0}",
+                  style: TextStyle(fontSize: 14),
+                ),
                 SizedBox(height: 4),
                 Text(
                   "Added: ${product["timestamp"] != null ? (product["timestamp"] as Timestamp).toDate().toString() : "No Date"}",
@@ -80,7 +83,6 @@ class _ProductsPageState extends State<ProductsPage> {
             trailing: IconButton(
               icon: Icon(Icons.delete, color: Colors.red),
               onPressed: () {
-                // Delete the product
                 Provider.of<ProductsProvider>(context, listen: false)
                     .deleteProduct(product["id"]);
               },
@@ -99,57 +101,71 @@ class _ProductsPageState extends State<ProductsPage> {
           title: Text("Add New Product"),
           content: Form(
             key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(labelText: "Product Name"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter a product name";
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: _priceController,
-                  decoration: InputDecoration(labelText: "Product Price"),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter a product price";
-                    }
-                    if (double.tryParse(value) == null) {
-                      return "Please enter a valid price";
-                    }
-                    return null;
-                  },
-                ),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(labelText: "Product Name"),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter a product name";
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _priceController,
+                    decoration: InputDecoration(labelText: "Product Price"),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter a product price";
+                      }
+                      if (double.tryParse(value) == null) {
+                        return "Please enter a valid price";
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _countController,
+                    decoration: InputDecoration(labelText: "Product Count"),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter product count";
+                      }
+                      if (int.tryParse(value) == null) {
+                        return "Please enter a valid count";
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context), // Close the dialog
+              onPressed: () => Navigator.pop(context),
               child: Text("Cancel"),
             ),
             TextButton(
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  // Get the name and price from the controllers
                   final name = _nameController.text;
                   final price = double.tryParse(_priceController.text) ?? 0.0;
+                  final count = int.tryParse(_countController.text) ?? 0;
 
-                  // Add the product to Firestore
                   await Provider.of<ProductsProvider>(context, listen: false)
-                      .addProduct(name, price);
+                      .addProduct(name, price, count);
 
-                  // Clear the text fields
                   _nameController.clear();
                   _priceController.clear();
+                  _countController.clear();
 
-                  // Close the dialog
                   Navigator.pop(context);
                 }
               },

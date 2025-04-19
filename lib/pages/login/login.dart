@@ -7,8 +7,14 @@ import 'package:ecommerce_admin_tut/widgets/loading.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
+  bool _obscureText = true; // Controls password visibility
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +52,7 @@ class LoginPage extends StatelessWidget {
                           size: 22,
                           weight: FontWeight.bold,
                         ),
-                        SizedBox(
-                          height: 20,
-                        ),
+                        SizedBox(height: 20),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Container(
@@ -65,9 +69,7 @@ class LoginPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 20,
-                        ),
+                        SizedBox(height: 20),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Container(
@@ -76,17 +78,27 @@ class LoginPage extends StatelessWidget {
                               padding: const EdgeInsets.only(left: 8.0),
                               child: TextField(
                                 controller: authProvider.password,
+                                obscureText: _obscureText, // Toggle visibility
                                 decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Password',
-                                    icon: Icon(Icons.lock_open)),
+                                  border: InputBorder.none,
+                                  hintText: 'Password',
+                                  icon: Icon(Icons.lock_open),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(_obscureText
+                                        ? Icons.visibility_off
+                                        : Icons.visibility),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscureText = !_obscureText;
+                                      });
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 5,
-                        ),
+                        SizedBox(height: 5),
                         Padding(
                           padding: const EdgeInsets.only(right: 20),
                           child: Row(
@@ -100,9 +112,7 @@ class LoginPage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        SizedBox(
-                          height: 40,
-                        ),
+                        SizedBox(height: 40),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Container(
@@ -137,9 +147,7 @@ class LoginPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: 40,
-                        ),
+                        SizedBox(height: 40),
                         Padding(
                           padding: const EdgeInsets.only(right: 20),
                           child: Row(

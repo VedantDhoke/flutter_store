@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart'; // For kDebugMode
+import 'package:flutter/foundation.dart';
 
 class ProductsProvider with ChangeNotifier {
   List<Map<String, dynamic>> _products = [];
@@ -16,6 +16,7 @@ class ProductsProvider with ChangeNotifier {
               "id": doc.id,
               "name": data["name"] ?? "Unknown Product",
               "price": data["price"] ?? 0.0,
+              "count": data["count"] ?? 0, // ✅ include count
               "timestamp": data["timestamp"] ?? Timestamp.now(),
             };
           }).toList();
@@ -29,11 +30,12 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addProduct(String name, double price) async {
+  Future<void> addProduct(String name, double price, int count) async {
     try {
       await FirebaseFirestore.instance.collection('products').add({
         "name": name,
         "price": price,
+        "count": count, // ✅ store count
         "timestamp": Timestamp.now(),
       });
     } catch (error) {

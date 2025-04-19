@@ -29,10 +29,6 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return _getPageRoute(RegistrationPage());
     case LayoutRoute:
       return _getPageRoute(LayoutTemplate());
-    // case CategoriesRoute:
-    //   return _getPageRoute(CategoriesPage());
-    // case BrandsRoute:
-    //   return _getPageRoute(BrandsPage());
     case PageControllerRoute:
       return _getPageRoute(AppPagesController());
     default:
